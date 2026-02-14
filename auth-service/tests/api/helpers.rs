@@ -1,4 +1,5 @@
 use reqwest;
+use uuid::Uuid;
 use auth_service::Application;
 
 pub struct TestApp {
@@ -34,9 +35,13 @@ impl TestApp {
             .expect("Failed to execute request.")
     }
 
-    pub async fn post_signup(&self) -> reqwest::Response {
+    pub async fn post_signup<Body>(&self, body: &Body) -> reqwest::Response
+    where
+        Body: serde::Serialize,
+    {
         self.http_client
             .post(&format!("{}/signup", &self.address))
+            .json(body)
             .send()
             .await
             .expect("Failed to execute request.")
@@ -73,6 +78,8 @@ impl TestApp {
             .await
             .expect("Failed to execute request.")
     }
+}
 
-    // TODO: Implement helper functions for all other routes (signup, login, logout, verify-2fa, and verify-token)
+pub fn get_random_email() -> String {
+    format!("{}@example.com", Uuid::new_v4())
 }
