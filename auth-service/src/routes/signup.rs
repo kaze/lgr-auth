@@ -3,13 +3,16 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     app_state::AppState,
-    domain::{AuthAPIError, User},
+    domain::{AuthAPIError, User, UserStore},
 };
 
-pub async fn signup(
-    State(state): State<AppState>,
+pub async fn signup<T>(
+    State(state): State<AppState<T>>,
     Json(request): Json<SignupRequest>,
-) -> Result<impl IntoResponse, AuthAPIError> {
+) -> Result<impl IntoResponse, AuthAPIError>
+where
+    T: UserStore + Send + Sync + 'static,
+{
     let email = request.email;
     let password = request.password;
 

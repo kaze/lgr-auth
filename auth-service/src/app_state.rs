@@ -1,18 +1,24 @@
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-use crate::services::hashmap_user_store::HashmapUserStore;
+use crate::domain::UserStore;
 
-// Using a type alias to improve readability!
-pub type UserStoreType = Arc<RwLock<HashmapUserStore>>;
-
-#[derive(Clone)]
-pub struct AppState {
-    pub user_store: UserStoreType,
+pub struct AppState<T: UserStore> {
+    pub user_store: Arc<RwLock<T>>,
 }
 
-impl AppState {
-    pub fn new(user_store: UserStoreType) -> Self {
+// Manual Clone impl because #[derive(Clone)] would add `T: Clone`,
+// but Arc<RwLock<T>> is Clone regardless of whether T itself is Clone.
+impl<T: UserStore> Clone for AppState<T> {
+    fn clone(&self) -> Self {
+        Self {
+            user_store: self.user_store.clone(),
+        }
+    }
+}
+
+impl<T: UserStore> AppState<T> {
+    pub fn new(user_store: Arc<RwLock<T>>) -> Self {
         Self { user_store }
     }
 }

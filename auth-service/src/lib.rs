@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use tokio::net::TcpListener;
 use tower_http::services::ServeDir;
 
-use crate::app_state::AppState;
+use crate::{app_state::AppState, domain::UserStore};
 
 #[derive(Serialize, Deserialize)]
 pub struct ErrorResponse {
@@ -46,7 +46,10 @@ pub struct Application {
 }
 
 impl Application {
-    pub async fn build(app_state: AppState, address: &str) -> Result<Self, Box<dyn Error>> {
+    pub async fn build<T>(app_state: AppState<T>, address: &str) -> Result<Self, Box<dyn Error>>
+    where
+        T: UserStore + Send + Sync + 'static,
+    {
         let router = Router::new()
                 .fallback_service(ServeDir::new("assets"))
                 .route("/signup", post(routes::signup))
